@@ -35,7 +35,8 @@ public class GitHubController {
         String createdDateRepo = map.get(CREATED_AT).toString();
 
         int stars = githubWrapperStarGazersQuantity(owner, repositoryName);
-        return new ResponseEntity(createModel(fullNameRepo, descriptionRepo, cloneUrlRepo, createdDateRepo, stars),httpStatus.OK);
+
+        return new ResponseEntity<>(createModel(fullNameRepo, descriptionRepo, cloneUrlRepo, createdDateRepo, stars), HttpStatus.OK);
 
 
     }
