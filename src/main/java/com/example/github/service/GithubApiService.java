@@ -12,20 +12,17 @@ import java.util.List;
 public class GithubApiService {
     private final String GITHUB_API_URL = "https://api.github.com/users/";
 
-    // Metoda do pobierania informacji o repozytoriach użytkownika z GitHub API
+
     public List<Repository> getUserRepositories(String username) {
-        // Tworzymy instancję RestTemplate do wykonywania zapytań HTTP
+
         RestTemplate restTemplate = new RestTemplate();
 
-        // Budujemy URL do zapytania HTTP
         String apiUrl = UriComponentsBuilder.fromHttpUrl(GITHUB_API_URL + username + "/repos")
                 .build()
                 .toUriString();
 
-        // Wykonujemy zapytanie HTTP GET do GitHub API
         Repository[] repositories = restTemplate.getForObject(apiUrl, Repository[].class);
 
-        // Zwracamy listę repozytoriów
         return Arrays.asList(repositories);
     }
 
