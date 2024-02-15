@@ -20,8 +20,12 @@ import java.util.Map;
 @RequestMapping("/repositories")
 public class RepositoryController {
 
-    @Autowired
-    GithubApiService githubApiService = new GithubApiService();
+    private final GithubApiService githubApiService;
+
+    public RepositoryController(GithubApiService githubApiService){
+        this.githubApiService = githubApiService;
+    }
+
 
     @GetMapping("/{username}")
     public ResponseEntity<?> getRepositories(@PathVariable String username) {
