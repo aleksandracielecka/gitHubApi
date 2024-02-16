@@ -5,7 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Branch {
+public class BranchDto {
+
     private String name;
     private String lastCommitShare;
 }

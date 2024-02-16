@@ -7,8 +7,8 @@ import java.util.List;
 
 @Getter
 @Setter
-public class Repository {
+public class RepositoryDto {
     private String name;
     private String ownerLogin;
-    private List<Branch> branches;
+    private List<BranchDto> branches;
 }
