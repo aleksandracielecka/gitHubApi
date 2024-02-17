@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,18 +43,19 @@ public class RepositoryController {
         }
         catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(errorResponse("User not found", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(errorResponse("Internal server error", e.getMessage()));
+                    .body(errorResponse(HttpStatus.NOT_FOUND.value(), e.getMessage()));
         }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()));
+//        }
 
 
     }
 
-    private Map<String, String> errorResponse(String error, String message) {
-        Map<String, String> errorMap = new HashMap<>();
-        errorMap.put("error", error);
+    private Map<String, Object> errorResponse(int status, String message) {
+        Map<String, Object> errorMap = new LinkedHashMap<>();
+        errorMap.put("status",status);
         errorMap.put("message", message);
         return errorMap;
     }

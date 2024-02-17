@@ -2,15 +2,14 @@ package com.example.github.service;
 
 import com.example.github.dto.MyRepositoryResponseDto;
 import com.example.github.dto.RepositoryDto;
+import com.example.github.exception.UserNotFoundException;
 import com.example.github.mapper.MyMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.modelmapper.ModelMapper;
@@ -51,37 +50,27 @@ public class GithubApiService {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<RepositoryDto[]> responseEntity = restTemplate.exchange(
-                apiUrl,
-                HttpMethod.GET,
-                entity,
-                RepositoryDto[].class
-        );
+        try {
+            ResponseEntity<RepositoryDto[]> responseEntity = restTemplate.exchange(
+                    apiUrl,
+                    HttpMethod.GET,
+                    entity,
+                    RepositoryDto[].class
+            );
 
-        RepositoryDto[] repositories = responseEntity.getBody();
+
+            RepositoryDto[] repositories = responseEntity.getBody();
 
 
-        if (repositories != null) {
-            return Arrays.asList(repositories);
-        } else {
-            return Collections.emptyList();
+            if (repositories != null) {
+                return Arrays.asList(repositories);
+            } else {
+                return Collections.emptyList();
+            }
+        }catch (HttpClientErrorException.NotFound exception){
+            throw new UserNotFoundException("User not found", exception);
         }
-//        ResponseEntity<List<RepositoryDto>> responseEntity = restTemplate.exchange(
-//                apiUrl,
-//                HttpMethod.GET,
-//                null,
-//                new ParameterizedTypeReference<List<RepositoryDto>>() {}
-//        );
-//
-//        List<RepositoryDto> repositories = responseEntity.getBody();
 
-//        if (repositories != null) {
-//            return repositories.stream()
-//                    .map(repo -> myMapper.mapToRepositoryDto(repo))
-//                    .collect(Collectors.toList());
-//        } else {
-//            return Collections.emptyList();
-//        }
 
     }
 
@@ -102,20 +91,9 @@ public class GithubApiService {
         } else {
             return Collections.emptyList();
         }
-//
-//        String apiUrl = UriComponentsBuilder.fromHttpUrl(GITHUB_API_URL_ALL)
-//                .build()
-//                .toUriString();
-//
-//        RepositoryDto[] repositories = restTemplate.getForObject(apiUrl, RepositoryDto[].class);
-//
-//        if (repositories != null) {
-//            return Arrays.asList(repositories);
-//        } else {
-//            return Collections.emptyList();
-//        }
+}
 
     }
 
 
-}
+
