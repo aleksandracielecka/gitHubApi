@@ -1,13 +1,11 @@
 package com.example.github.mapper;
 
-import com.example.github.dto.GitHubErrorDto;
-import com.example.github.dto.MyErrorResponseDto;
-import com.example.github.dto.MyRepositoryResponseDto;
-import com.example.github.dto.RepositoryDto;
+import com.example.github.dto.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class MyMapper {
@@ -19,7 +17,10 @@ public class MyMapper {
 
     public MyRepositoryResponseDto mapToMyRepositoryResponseDto(List<RepositoryDto> repositories) {
         MyRepositoryResponseDto myRepositoryResponseDto = new MyRepositoryResponseDto();
-        myRepositoryResponseDto.setRepositories(repositories);
+        List<RepositoryDto> mappedRepositories = repositories.stream()
+                .map(this::mapToRepositoryDto)
+                .collect(Collectors.toList());
+        myRepositoryResponseDto.setRepositories(mappedRepositories);
         return myRepositoryResponseDto;
     }
 
@@ -27,9 +28,36 @@ public class MyMapper {
         return modelMapper.map(gitHubErrorDto, MyErrorResponseDto.class);
     }
 
-    public RepositoryDto mapToRepositoryDto(RepositoryDto repositories) {
-        return modelMapper.map(repositories, RepositoryDto.class);
+    public RepositoryDto mapToRepositoryDto(RepositoryDto repository) {
+      RepositoryDto mappedRepository = modelMapper.map(repository, RepositoryDto.class);
+        List<BranchDto> mappedBranches = repository.getBranches().stream()
+                .map(branch -> modelMapper.map(branch, BranchDto.class))
+                .collect(Collectors.toList());
+        mappedRepository.setBranches(mappedBranches);
+        return mappedRepository;
     }
+
+
+//    public CommitDto mapToCommitDto(JsonNode commitNode) {
+//        CommitDto commitDto = new CommitDto();
+//        commitDto.setSha(commitNode.get("sha").asText());
+//        return commitDto;
+//    }
+
+//
+//    public MyRepositoryResponseDto mapToMyRepositoryResponseDto(List<RepositoryDto> repositories) {
+//        MyRepositoryResponseDto myRepositoryResponseDto = new MyRepositoryResponseDto();
+//        myRepositoryResponseDto.setRepositories(repositories);
+//        return myRepositoryResponseDto;
+//    }
+//
+//    public MyErrorResponseDto mapToMyErrorResponseDto(GitHubErrorDto gitHubErrorDto) {
+//        return modelMapper.map(gitHubErrorDto, MyErrorResponseDto.class);
+//    }
+//
+//    public RepositoryDto mapToRepositoryDto(RepositoryDto repositories) {
+//        return modelMapper.map(repositories, RepositoryDto.class);
+//    }
 
 
 }

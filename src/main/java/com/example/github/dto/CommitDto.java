@@ -3,13 +3,12 @@ package com.example.github.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class BranchDto {
+public class CommitDto {
+    private String sha;
+    private LocalDateTime date;
 
-    private String name;
-    private String lastCommitSha;
 }

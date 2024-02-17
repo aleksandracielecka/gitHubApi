@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-
 public class RepositoryController {
 
     private final GithubApiService githubApiService;
@@ -25,14 +24,7 @@ public class RepositoryController {
         this.githubApiService = githubApiService;
     }
 
-    @GetMapping("/repositories")
-    public ResponseEntity<?> getAllPublicRepositories() {
 
-        List<RepositoryDto> repositories = githubApiService.getAllPublicRepositories();
-
-        return ResponseEntity.ok(repositories);
-
-    }
 
     @GetMapping("/repositories/{username}")
     public ResponseEntity<?> getRepositories(@PathVariable String username) {
