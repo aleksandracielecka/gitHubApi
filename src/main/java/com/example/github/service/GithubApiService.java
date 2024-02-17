@@ -101,9 +101,7 @@ public class GithubApiService {
                     for (BranchDto branchDto : branchDtos) {
 
                         String lastCommitSha = getLastCommitShaForBranch(username, repositoryName, branchDto.getName());
-
                         branchDto.setLastCommitSha(lastCommitSha);
-
                         branches.add(branchDto);
                     }
                 }
