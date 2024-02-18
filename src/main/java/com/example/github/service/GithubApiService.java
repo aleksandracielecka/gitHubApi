@@ -6,7 +6,6 @@ import com.example.github.exception.RepositoryNotFoundException;
 import com.example.github.exception.UserNotFoundException;
 import com.example.github.mapper.MyMapper;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -24,7 +23,6 @@ import static java.util.Objects.isNull;
 
 
 @Service
-@Slf4j
 public class GithubApiService {
     private final String GITHUB_API_URL = "https://api.github.com/users/";
     private final String GITHUB_API_URL_BRANCHES = "https://api.github.com/repos/";
@@ -48,36 +46,31 @@ public class GithubApiService {
 
         HttpEntity<String> entity = getStringHttpEntity();
 
-        try {
-            ResponseEntity<List<RepositoryDto>> responseEntity = restTemplate.exchange(
-                    apiUrl,
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<>() {
-                    }
-            );
 
-            List<RepositoryDto> repositories = responseEntity.getBody();
+        ResponseEntity<List<RepositoryDto>> responseEntity = restTemplate.exchange(
+                apiUrl,
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<>() {
+                }
+        );
+        List<RepositoryDto> repositories = responseEntity.getBody();
 
-            if (isNull(repositories)) {
-                return Collections.emptyList();
-            }
-
-            repositories = repositories.stream()
-                    .map(repo -> {
-                        repo.setOwnerLogin(username);
-                        List<BranchDto> branches = getBranchesForRepository(username, repo.getName());
-                        repo.setBranches(branches);
-                        return repo;
-                    })
-                    .collect(Collectors.toList());
-
-            return myMapper.mapToMyRepositoryResponseDto(repositories).getRepositories();
-
-
-        } catch (HttpClientErrorException.NotFound exception) {
-            throw new UserNotFoundException("User not found", exception);
+        if (isNull(repositories)) {
+            return Collections.emptyList();
         }
+        repositories = repositories.stream()
+                .map(repo -> {
+                    repo.setOwnerLogin(username);
+                    List<BranchDto> branches = getBranchesForRepository(username, repo.getName());
+                    repo.setBranches(branches);
+                    return repo;
+                })
+                .collect(Collectors.toList());
+
+        return myMapper.mapToMyRepositoryResponseDto(repositories).getRepositories();
+
+
     }
 
 
@@ -85,28 +78,25 @@ public class GithubApiService {
         String branchesUrl = GITHUB_API_URL_BRANCHES + username + "/" + repositoryName + "/branches";
         HttpEntity<String> entity = getStringHttpEntity();
 
-        try {
-            ResponseEntity<List<BranchDto>> branchesResponse = restTemplate.exchange(
-                    branchesUrl,
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<>() {
-                    }
-            );
-            if (branchesResponse.getStatusCode() == HttpStatus.OK) {
-                return branchesResponse.getBody();
+        ResponseEntity<List<BranchDto>> branchesResponse = restTemplate.exchange(
+                branchesUrl,
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<>() {
+                }
+        );
+        if (branchesResponse.getStatusCode() == HttpStatus.OK) {
+            return branchesResponse.getBody();
 
-            } else {
-                throw new RuntimeException("Failed to retrieve branches for repository: " + repositoryName);
-            }
-        } catch (HttpClientErrorException ex) {
-            if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new RepositoryNotFoundException("Repository not found: " + repositoryName, ex);
-            } else {
-                throw ex;
-            }
+        } else {
+            throw new RuntimeException("Failed to retrieve branches for repository: " + repositoryName);
         }
+
+
     }
+
+
+
 //wywalic nullpointer (if != not null to cos tam,
 // wywalic try-catche
 // validacja gdy ktos nie poda access token - controller-advice - ustaw token w app prperties
@@ -117,6 +107,7 @@ public class GithubApiService {
     //
 
     //httpEntity zamienic na HttpRequest??
+
     private HttpEntity<String> getStringHttpEntity() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "token " + githubAccessToken);

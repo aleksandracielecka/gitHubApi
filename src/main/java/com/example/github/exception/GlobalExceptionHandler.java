@@ -17,7 +17,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundException ex) {
         return new ResponseEntity<>(errorResponse(404, "User not found"), HttpStatus.NOT_FOUND);
-
     }
 
     @ExceptionHandler(RepositoryNotFoundException.class)
@@ -27,7 +26,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpClientErrorException.NotFound.class)
     public ResponseEntity<Map<String, Object>> handleRepositoryNotFoundException(HttpClientErrorException.NotFound ex) {
-        return new ResponseEntity<>(errorResponse(404, "Repository not found"), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse(404, "User not found"), HttpStatus.NOT_FOUND);
     }
 
     private Map<String, Object> errorResponse(int status, String message) {
