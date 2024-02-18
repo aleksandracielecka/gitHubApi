@@ -24,10 +24,6 @@ public class MyMapper {
         return myRepositoryResponseDto;
     }
 
-    public MyErrorResponseDto mapToMyErrorResponseDto(GitHubErrorDto gitHubErrorDto) {
-        return modelMapper.map(gitHubErrorDto, MyErrorResponseDto.class);
-    }
-
     public RepositoryDto mapToRepositoryDto(RepositoryDto repository) {
       RepositoryDto mappedRepository = modelMapper.map(repository, RepositoryDto.class);
         List<BranchDto> mappedBranches = repository.getBranches().stream()
@@ -36,29 +32,5 @@ public class MyMapper {
         mappedRepository.setBranches(mappedBranches);
         return mappedRepository;
     }
-    public BranchDto mapToBranchDto(CommitDto commitDto) {
-        BranchDto branchDto = new BranchDto();
-        branchDto.setCommitDto(commitDto);
-        return branchDto;
-    }
-
-
-
-
-//
-//    public MyRepositoryResponseDto mapToMyRepositoryResponseDto(List<RepositoryDto> repositories) {
-//        MyRepositoryResponseDto myRepositoryResponseDto = new MyRepositoryResponseDto();
-//        myRepositoryResponseDto.setRepositories(repositories);
-//        return myRepositoryResponseDto;
-//    }
-//
-//    public MyErrorResponseDto mapToMyErrorResponseDto(GitHubErrorDto gitHubErrorDto) {
-//        return modelMapper.map(gitHubErrorDto, MyErrorResponseDto.class);
-//    }
-//
-//    public RepositoryDto mapToRepositoryDto(RepositoryDto repositories) {
-//        return modelMapper.map(repositories, RepositoryDto.class);
-//    }
-
 
 }

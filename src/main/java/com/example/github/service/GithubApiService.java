@@ -64,7 +64,7 @@ public class GithubApiService {
                 List<RepositoryDto> mappedRepositories = Arrays.stream(repositories)
                         .map(repo -> {
                             repo.setOwnerLogin(username);
-                            List<BranchDto> branches = getBranchesWithLastCommitSha(username, repo.getName());
+                            List<BranchDto> branches = getBranchesForRepository(username, repo.getName());
                             repo.setBranches(branches);
                             return repo;
                         })
@@ -79,30 +79,22 @@ public class GithubApiService {
         }
     }
 
-    public List<BranchDto> getBranchesWithLastCommitSha(String username, String repositoryName) {
+    private List<BranchDto> getBranchesForRepository(String username, String repositoryName) {
         String branchesUrl = GITHUB_API_URL_BRANCHES + username + "/" + repositoryName + "/branches";
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "token " + githubAccessToken);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<BranchDto[]> responseEntity = restTemplate.exchange(
+            ResponseEntity<BranchDto[]> branchesResponse = restTemplate.exchange(
                     branchesUrl,
                     HttpMethod.GET,
                     entity,
                     BranchDto[].class
             );
+            if (branchesResponse.getStatusCode() == HttpStatus.OK) {
+                return Arrays.stream(Objects.requireNonNull(branchesResponse.getBody())).toList();
 
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                BranchDto[] branchesArray = responseEntity.getBody();
-                List<BranchDto> branches = Arrays.asList(branchesArray);
-                if (!branches.isEmpty()) {
-                    for (BranchDto branch : branches) {
-                        String lastCommitSha = getLastCommitShaForBranch(username, repositoryName, branch.getName());
-                        branch.setCommitDto(new CommitDto(lastCommitSha));
-                    }
-                    return branches;
-                }
             } else {
                 throw new RuntimeException("Failed to retrieve branches for repository: " + repositoryName);
             }
@@ -113,40 +105,8 @@ public class GithubApiService {
                 throw ex;
             }
         }
-
-        return Collections.emptyList();
-    }
-
-
-    private String getLastCommitShaForBranch(String username, String repositoryName, String branchName) {
-        String commitsUrl = GITHUB_API_URL_BRANCHES + username + "/" + repositoryName + "/git/commits/" + branchName;
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "token " + githubAccessToken);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        try {
-            ResponseEntity<CommitDto[]> commitsResponse = restTemplate.exchange(
-                    commitsUrl,
-                    HttpMethod.GET,
-                    entity,
-                    CommitDto[].class
-            );
-
-            if (commitsResponse.getStatusCode() == HttpStatus.OK) {
-                CommitDto[] commits = commitsResponse.getBody();
-                if (commits != null && commits.length > 0) {
-
-                    return commits[0].getSha();
-                }
-            }
-        } catch (HttpClientErrorException ex) {
-
-        }
-
-        return "nic";
     }
 }
-
 
 
 

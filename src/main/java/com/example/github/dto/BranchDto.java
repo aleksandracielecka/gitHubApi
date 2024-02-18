@@ -15,5 +15,5 @@ import java.time.LocalDateTime;
 public class BranchDto {
 
     private String name;
-    private CommitDto commitDto;
+    private CommitDto commit;
 }
