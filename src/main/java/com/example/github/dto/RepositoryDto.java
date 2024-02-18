@@ -2,6 +2,7 @@ package com.example.github.dto;
 
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -13,7 +14,4 @@ public class RepositoryDto {
     private List<BranchDto> branches;
 
 
-    public RepositoryDto(String name) {
-        this.name = name;
-    }
 }

@@ -9,13 +9,14 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class GitHubApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(GitHubApplication.class, args);}
+    public static void main(String[] args) {
+        SpringApplication.run(GitHubApplication.class, args);
+    }
 
-		@Bean
-		public ObjectMapper objectMapper() {
-			return new ObjectMapper();
-		}
-	}
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+}
 
 

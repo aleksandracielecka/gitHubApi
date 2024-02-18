@@ -20,10 +20,9 @@ public class RepositoryController {
 
     private final GithubApiService githubApiService;
 
-    public RepositoryController(GithubApiService githubApiService){
+    public RepositoryController(GithubApiService githubApiService) {
         this.githubApiService = githubApiService;
     }
-
 
 
     @GetMapping("/repositories/{username}")
@@ -32,22 +31,20 @@ public class RepositoryController {
             List<RepositoryDto> repositories = githubApiService.getUserRepositories(username);
 
             return ResponseEntity.ok(repositories);
-        }
-        catch (UserNotFoundException e) {
+        } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(errorResponse(HttpStatus.NOT_FOUND.value(), e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()));
         }
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(errorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()));
-//        }
 
 
     }
 
     private Map<String, Object> errorResponse(int status, String message) {
         Map<String, Object> errorMap = new LinkedHashMap<>();
-        errorMap.put("status",status);
+        errorMap.put("status", status);
         errorMap.put("message", message);
         return errorMap;
     }

@@ -1,9 +1,7 @@
 package com.example.github.service;
 
 import com.example.github.dto.BranchDto;
-import com.example.github.dto.CommitDto;
 import com.example.github.dto.RepositoryDto;
-import com.example.github.exception.CommitNotFoundException;
 import com.example.github.exception.RepositoryNotFoundException;
 import com.example.github.exception.UserNotFoundException;
 import com.example.github.mapper.MyMapper;
@@ -35,7 +33,6 @@ public class GithubApiService {
         this.restTemplate = restTemplate;
         this.myMapper = myMapper;
         this.githubAccessToken = githubAccessToken;
-
     }
 
     public List<RepositoryDto> getUserRepositories(String username) {
@@ -45,23 +42,21 @@ public class GithubApiService {
                 .build()
                 .toUriString();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "token " + githubAccessToken);
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+        HttpEntity<String> entity = getStringHttpEntity();
 
         try {
-            ResponseEntity<RepositoryDto[]> responseEntity = restTemplate.exchange(
+            ResponseEntity<List<RepositoryDto>> responseEntity = restTemplate.exchange(
                     apiUrl,
                     HttpMethod.GET,
                     entity,
-                    RepositoryDto[].class
+                    new ParameterizedTypeReference<List<RepositoryDto>>() {
+                    }
             );
 
-            RepositoryDto[] repositories = responseEntity.getBody();
+            List<RepositoryDto> repositories = responseEntity.getBody();
 
             if (repositories != null) {
-                List<RepositoryDto> mappedRepositories = Arrays.stream(repositories)
+                repositories.stream()
                         .map(repo -> {
                             repo.setOwnerLogin(username);
                             List<BranchDto> branches = getBranchesForRepository(username, repo.getName());
@@ -70,30 +65,32 @@ public class GithubApiService {
                         })
                         .collect(Collectors.toList());
 
-                return myMapper.mapToMyRepositoryResponseDto(mappedRepositories).getRepositories();
+                return myMapper.mapToMyRepositoryResponseDto(repositories).getRepositories();
             } else {
                 return Collections.emptyList();
             }
         } catch (HttpClientErrorException.NotFound exception) {
             throw new UserNotFoundException("User not found", exception);
+        } catch (NullPointerException e) {
+            throw new RepositoryNotFoundException("Repository not found: ", e);
         }
     }
 
-    private List<BranchDto> getBranchesForRepository(String username, String repositoryName) {
+
+    public List<BranchDto> getBranchesForRepository(String username, String repositoryName) {
         String branchesUrl = GITHUB_API_URL_BRANCHES + username + "/" + repositoryName + "/branches";
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "token " + githubAccessToken);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+        HttpEntity<String> entity = getStringHttpEntity();
 
         try {
-            ResponseEntity<BranchDto[]> branchesResponse = restTemplate.exchange(
+            ResponseEntity<List<BranchDto>> branchesResponse = restTemplate.exchange(
                     branchesUrl,
                     HttpMethod.GET,
                     entity,
-                    BranchDto[].class
+                    new ParameterizedTypeReference<List<BranchDto>>() {
+                    }
             );
             if (branchesResponse.getStatusCode() == HttpStatus.OK) {
-                return Arrays.stream(Objects.requireNonNull(branchesResponse.getBody())).toList();
+                return branchesResponse.getBody();
 
             } else {
                 throw new RuntimeException("Failed to retrieve branches for repository: " + repositoryName);
@@ -105,6 +102,13 @@ public class GithubApiService {
                 throw ex;
             }
         }
+    }
+
+    private HttpEntity<String> getStringHttpEntity() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "token " + githubAccessToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        return entity;
     }
 }
 

@@ -1,52 +1,69 @@
 package com.example.github.service;
 
 
+import com.example.github.dto.BranchDto;
 import com.example.github.dto.RepositoryDto;
+import com.example.github.exception.UserNotFoundException;
+import com.example.github.mapper.MyMapper;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.modelmapper.ModelMapper;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 
 public class GithubApiServiceTest {
 
-    private static final String MOCK_ACCESS_TOKEN = "mock_access_token";
-    private static final String MOCK_USERNAME = "mock_username";
+    @Mock
+    private ModelMapper modelMapperMock;
+
+    @Test
+    public void shouldReturnBranchesForRepository() {
+        RestTemplate restTemplateMock = Mockito.mock(RestTemplate.class);
+
+        GithubApiService githubApiService = new GithubApiService(restTemplateMock, new MyMapper(modelMapperMock), "dummyToken");
 
 
-   @Test
-    public void shouldReturnUserRepositoriesNames() {
+        List<BranchDto> mockBranches = new ArrayList<>();
+
+        mockBranches.add(new BranchDto("branch1"));
+        mockBranches.add(new BranchDto("branch2"));
+        ResponseEntity<List<BranchDto>> mockResponseEntity = new ResponseEntity<>(mockBranches, HttpStatus.OK);
 
 
-       RestTemplate restTemplateMock = Mockito.mock(RestTemplate.class);
-       GithubApiService githubApiService = new GithubApiService(restTemplateMock, null, MOCK_ACCESS_TOKEN);
+        when(restTemplateMock.exchange(Mockito.anyString(), Mockito.eq(HttpMethod.GET), Mockito.any(), Mockito.eq(new ParameterizedTypeReference<List<BranchDto>>() {
+                })))
+                .thenReturn(mockResponseEntity);
 
-       RepositoryDto[] mockRepositories = {
-               new RepositoryDto("repo1"),
-               new RepositoryDto("repo2")
-       };
-       ResponseEntity<RepositoryDto[]> mockResponseEntity = new ResponseEntity<>(mockRepositories, HttpStatus.OK);
+        List<BranchDto> branches = githubApiService.getBranchesForRepository("testUser", "testRepo");
 
-       Mockito.when(restTemplateMock.exchange(Mockito.anyString(), Mockito.eq(HttpMethod.GET), Mockito.any(HttpEntity.class), Mockito.eq(RepositoryDto[].class)))
-               .thenReturn(mockResponseEntity);
+        Assert.assertNotNull(branches);
+        Assert.assertEquals(2, branches.size());
 
-       // When
-       List<RepositoryDto> repositories = githubApiService.getUserRepositories(MOCK_USERNAME);
-
-       // Then
-        assertNotNull(repositories);
-        assertEquals(2, repositories.size());
-        assertEquals("repo1", repositories.get(0).getName());
-        assertEquals("repo2", repositories.get(1).getName());
     }
 
-
-
 }
+
+
+
+

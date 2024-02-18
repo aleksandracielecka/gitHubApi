@@ -25,7 +25,7 @@ public class MyMapper {
     }
 
     public RepositoryDto mapToRepositoryDto(RepositoryDto repository) {
-      RepositoryDto mappedRepository = modelMapper.map(repository, RepositoryDto.class);
+        RepositoryDto mappedRepository = modelMapper.map(repository, RepositoryDto.class);
         List<BranchDto> mappedBranches = repository.getBranches().stream()
                 .map(branch -> modelMapper.map(branch, BranchDto.class))
                 .collect(Collectors.toList());

@@ -16,4 +16,7 @@ public class BranchDto {
 
     private String name;
     private CommitDto commit;
+
+    public BranchDto(String branch) {
+    }
 }
