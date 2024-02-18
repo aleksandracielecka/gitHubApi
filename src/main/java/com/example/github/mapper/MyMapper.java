@@ -1,6 +1,8 @@
 package com.example.github.mapper;
 
-import com.example.github.dto.*;
+import com.example.github.dto.BranchDto;
+import com.example.github.dto.MyRepositoryResponseDto;
+import com.example.github.dto.RepositoryDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 

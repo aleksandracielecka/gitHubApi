@@ -6,6 +6,7 @@ import com.example.github.exception.RepositoryNotFoundException;
 import com.example.github.exception.UserNotFoundException;
 import com.example.github.mapper.MyMapper;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -19,8 +20,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
+
 
 @Service
+@Slf4j
 public class GithubApiService {
     private final String GITHUB_API_URL = "https://api.github.com/users/";
     private final String GITHUB_API_URL_BRANCHES = "https://api.github.com/repos/";
@@ -28,7 +32,7 @@ public class GithubApiService {
     private final MyMapper myMapper;
     private final String githubAccessToken;
 
-    @Autowired
+
     public GithubApiService(RestTemplate restTemplate, MyMapper myMapper, @Value("${github.access.token}") String githubAccessToken) {
         this.restTemplate = restTemplate;
         this.myMapper = myMapper;
@@ -49,30 +53,30 @@ public class GithubApiService {
                     apiUrl,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<List<RepositoryDto>>() {
+                    new ParameterizedTypeReference<>() {
                     }
             );
 
             List<RepositoryDto> repositories = responseEntity.getBody();
 
-            if (repositories != null) {
-                repositories.stream()
-                        .map(repo -> {
-                            repo.setOwnerLogin(username);
-                            List<BranchDto> branches = getBranchesForRepository(username, repo.getName());
-                            repo.setBranches(branches);
-                            return repo;
-                        })
-                        .collect(Collectors.toList());
-
-                return myMapper.mapToMyRepositoryResponseDto(repositories).getRepositories();
-            } else {
+            if (isNull(repositories)) {
                 return Collections.emptyList();
             }
+
+            repositories = repositories.stream()
+                    .map(repo -> {
+                        repo.setOwnerLogin(username);
+                        List<BranchDto> branches = getBranchesForRepository(username, repo.getName());
+                        repo.setBranches(branches);
+                        return repo;
+                    })
+                    .collect(Collectors.toList());
+
+            return myMapper.mapToMyRepositoryResponseDto(repositories).getRepositories();
+
+
         } catch (HttpClientErrorException.NotFound exception) {
             throw new UserNotFoundException("User not found", exception);
-        } catch (NullPointerException e) {
-            throw new RepositoryNotFoundException("Repository not found: ", e);
         }
     }
 
@@ -86,7 +90,7 @@ public class GithubApiService {
                     branchesUrl,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<List<BranchDto>>() {
+                    new ParameterizedTypeReference<>() {
                     }
             );
             if (branchesResponse.getStatusCode() == HttpStatus.OK) {
@@ -103,7 +107,16 @@ public class GithubApiService {
             }
         }
     }
+//wywalic nullpointer (if != not null to cos tam,
+// wywalic try-catche
+// validacja gdy ktos nie poda access token - controller-advice - ustaw token w app prperties
+    // w kazdej klasi ctr+alt+all+l czyli susunac
+//wywalic settery, lepiej przez konstruktor
+    // wywalic inne info o bledach, nie pokazujemy stacktraceów!!!
+    //dodac loggi, np.szukasz repo dla usera x,
+    //
 
+    //httpEntity zamienic na HttpRequest??
     private HttpEntity<String> getStringHttpEntity() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "token " + githubAccessToken);

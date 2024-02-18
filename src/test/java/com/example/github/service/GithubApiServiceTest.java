@@ -61,6 +61,7 @@ public class GithubApiServiceTest {
         Assert.assertEquals(2, branches.size());
 
     }
+    // sprawdzic wyjatki - warunki brzegowe
 
 }
 
