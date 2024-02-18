@@ -36,13 +36,14 @@ public class MyMapper {
         mappedRepository.setBranches(mappedBranches);
         return mappedRepository;
     }
+    public BranchDto mapToBranchDto(CommitDto commitDto) {
+        BranchDto branchDto = new BranchDto();
+        branchDto.setCommitDto(commitDto);
+        return branchDto;
+    }
 
 
-//    public CommitDto mapToCommitDto(JsonNode commitNode) {
-//        CommitDto commitDto = new CommitDto();
-//        commitDto.setSha(commitNode.get("sha").asText());
-//        return commitDto;
-//    }
+
 
 //
 //    public MyRepositoryResponseDto mapToMyRepositoryResponseDto(List<RepositoryDto> repositories) {

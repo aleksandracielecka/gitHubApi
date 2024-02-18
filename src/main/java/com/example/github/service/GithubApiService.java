@@ -64,7 +64,7 @@ public class GithubApiService {
                 List<RepositoryDto> mappedRepositories = Arrays.stream(repositories)
                         .map(repo -> {
                             repo.setOwnerLogin(username);
-                            List<BranchDto> branches = getBranchesForRepository(username, repo.getName());
+                            List<BranchDto> branches = getBranchesWithLastCommitSha(username, repo.getName());
                             repo.setBranches(branches);
                             return repo;
                         })
@@ -79,33 +79,30 @@ public class GithubApiService {
         }
     }
 
-
-    private List<BranchDto> getBranchesForRepository(String username, String repositoryName) {
+    public List<BranchDto> getBranchesWithLastCommitSha(String username, String repositoryName) {
         String branchesUrl = GITHUB_API_URL_BRANCHES + username + "/" + repositoryName + "/branches";
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "token " + githubAccessToken);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<BranchDto[]> branchesResponse = restTemplate.exchange(
+            ResponseEntity<BranchDto[]> responseEntity = restTemplate.exchange(
                     branchesUrl,
                     HttpMethod.GET,
                     entity,
                     BranchDto[].class
             );
 
-            if (branchesResponse.getStatusCode() == HttpStatus.OK) {
-                BranchDto[] branchDtos = branchesResponse.getBody();
-                List<BranchDto> branches = new ArrayList<>();
-                if (branchDtos != null) {
-                    for (BranchDto branchDto : branchDtos) {
-
-                        String lastCommitSha = getLastCommitShaForBranch(username, repositoryName, branchDto.getName());
-                        branchDto.setLastCommitSha(lastCommitSha);
-                        branches.add(branchDto);
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                BranchDto[] branchesArray = responseEntity.getBody();
+                List<BranchDto> branches = Arrays.asList(branchesArray);
+                if (!branches.isEmpty()) {
+                    for (BranchDto branch : branches) {
+                        String lastCommitSha = getLastCommitShaForBranch(username, repositoryName, branch.getName());
+                        branch.setCommitDto(new CommitDto(lastCommitSha));
                     }
+                    return branches;
                 }
-                return branches;
             } else {
                 throw new RuntimeException("Failed to retrieve branches for repository: " + repositoryName);
             }
@@ -116,6 +113,8 @@ public class GithubApiService {
                 throw ex;
             }
         }
+
+        return Collections.emptyList();
     }
 
 
@@ -126,31 +125,29 @@ public class GithubApiService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<List<CommitDto>> commitsResponse = restTemplate.exchange(
+            ResponseEntity<CommitDto[]> commitsResponse = restTemplate.exchange(
                     commitsUrl,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<List<CommitDto>>() {
-                    }
+                    CommitDto[].class
             );
 
             if (commitsResponse.getStatusCode() == HttpStatus.OK) {
-                List<CommitDto> commitDtos = commitsResponse.getBody();
-                if (commitDtos != null && !commitDtos.isEmpty()) {
-                    commitDtos.sort(Comparator.comparing(CommitDto::getDate).reversed());
+                CommitDto[] commits = commitsResponse.getBody();
+                if (commits != null && commits.length > 0) {
 
-                    return commitDtos.get(0).getSha();
+                    return commits[0].getSha();
                 }
             }
         } catch (HttpClientErrorException ex) {
-//            throw new CommitNotFoundException("Nie znaleziono żądanego commita.", ex);
+
         }
 
         return "nic";
     }
-
-
 }
+
+
 
 
 
